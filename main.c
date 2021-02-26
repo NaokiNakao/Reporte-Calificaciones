@@ -55,12 +55,14 @@ void setColor(int, int);
 void defaultColor();
 void getCalifEval(EVAL*, char*, char*, char*);
 void calcPP(GRUPO*);
+void notaMinMax(EVAL*, int*, int*);
 
 int main()
 {
    GRUPO grupo;
 
    grupo = getGrupo();
+   calcPP(&grupo);
 
    return 0;
 }
@@ -176,6 +178,48 @@ void calcPP(GRUPO* gr)
    {
       gr->pp->valor = ( (gr->p1->valor*gr->p1->porc) + (gr->p2->valor*gr->p2->porc) +
                        (gr->ef->valor*gr->ef->porc) + (gr->ta->valor*gr->ta->porc) ) / PP;
+   }
+
+   return;
+}
+
+/*
+   Función    : notaMinMax
+   Argumentos : EVAL* eval: estructura con las evaluaciones
+                int* ind_min: índice del estudiante con menor nota
+                int* ind_max: índice del estudiante con mayor nota
+   Objetivo   : encontrar los estudiantes con menor y mayor nota en una evaluación
+   Retorno    : ---
+*/
+void notaMinMax(EVAL* eval, int* ind_min, int* ind_max)
+{
+   int index;
+   float n_min, n_max;
+
+   // buscando nota mínima
+   *ind_min = 0;
+   n_min = eval[0].valor;
+
+   for (index = 0; index < MAXEST; index++)
+   {
+      if (eval[index].valor < n_min)
+      {
+         *ind_min = index;
+         n_min = eval[index].valor;
+      }
+   }
+
+   // buscando nota máxima
+   *ind_max = 0;
+   n_max = eval[0].valor;
+
+   for (index = 0; index < MAXEST; index++)
+   {
+      if (eval[index].valor > n_max)
+      {
+         *ind_max = index;
+         n_max = eval[index].valor;
+      }
    }
 
    return;
