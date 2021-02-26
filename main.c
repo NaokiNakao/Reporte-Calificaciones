@@ -1,3 +1,18 @@
+/*
+   Programa para almacenar reporte de notas.
+
+   Autor: Naoki Nakao
+   Fecha:
+
+   Cosas por hacer:
+   -//Promedio parcial
+   -Presentar nota máxima y mínima por evaluación y cuáles estudiantes las obtuvieron
+   -Opción de presentar los estudiantes con mayor nota sobre el promedio en P1, P2, F o T
+   -Tabla de posibilidades de pasar, sacar C, B o A
+   -Tabla con evaluaciones finales
+   -Menú de opciones
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <conio.c>
@@ -13,10 +28,7 @@
 
 #define MIN      0
 #define MAX    100
-#define P1    0.20
-#define P2    0.30
-#define EF    0.25
-#define TA    0.25
+#define PP    0.75
 
 /* Estructuras */
 
@@ -39,9 +51,10 @@ typedef struct{
 /* Prototipos de función */
 
 GRUPO getGrupo(void);
-void getCalifEval(EVAL*, char*, char*, char*);
 void setColor(int, int);
 void defaultColor();
+void getCalifEval(EVAL*, char*, char*, char*);
+void calcPP(GRUPO*);
 
 int main()
 {
@@ -145,6 +158,25 @@ void getCalifEval(EVAL* eval, char* str1, char* str2, char* str3)
    printf("%s: ", str3);
    fflush(stdin);
    gets(eval->desc);
+
+   return;
+}
+
+/*
+   Función    : calcPP
+   Argumentos : GRUPO* gr: estructura con la información del grupo
+   Objetivo   : calcular el promedio parcial en base a 75% de los estudiantes
+   Retorno    : ---
+*/
+void calcPP(GRUPO* gr)
+{
+   int index;
+
+   for (index = 0; index < MAXEST; index++)
+   {
+      gr->pp->valor = ( (gr->p1->valor*gr->p1->porc) + (gr->p2->valor*gr->p2->porc) +
+                       (gr->ef->valor*gr->ef->porc) + (gr->ta->valor*gr->ta->porc) ) / PP;
+   }
 
    return;
 }
