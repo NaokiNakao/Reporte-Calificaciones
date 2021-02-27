@@ -6,7 +6,7 @@
 
    Cosas por hacer:
    -//Promedio parcial
-   -Presentar nota máxima y mínima por evaluación y cuáles estudiantes las obtuvieron
+   -//Presentar nota máxima y mínima por evaluación y cuáles estudiantes las obtuvieron
    -Opción de presentar los estudiantes con mayor nota sobre el promedio en P1, P2, F o T
    -Tabla de posibilidades de pasar, sacar C, B o A
    -Tabla con evaluaciones finales
@@ -40,8 +40,6 @@
 #define MAX    100
 #define PP    0.75
 
-#define EVAL_MAX_MIN   0
-
 /* Estructuras */
 
 typedef struct{
@@ -71,6 +69,8 @@ void showOpciones(char [][CHAROPC], int);
 float calcCalif(GRUPO*, int);
 void showNotaMinMax(EST*, EVAL*, char*, int, int);
 void notaMinMax(EVAL*, int*, int*);
+void showSupProm(EST*, EVAL*, char*);
+float promedio(EVAL*);
 
 int main()
 {
@@ -78,14 +78,15 @@ int main()
    int opc;
    char key;
 
-   grupo = getGrupo();
+   //grupo = getGrupo();
 
    while (TRUE)
    {
       opc = selectOpciones();
       system("cls");
 
-      if (opc == EVAL_MAX_MIN)
+      // mostrando calificaciones máximas y mínimas en las evaluaciones
+      if (opc == 0)
       {
          showNotaMinMax(grupo.est, grupo.p1, "     PARCIAL 1     ", 3, 1);
          showNotaMinMax(grupo.est, grupo.p2, "     PARCIAL 2     ", 30, 1);
@@ -93,8 +94,24 @@ int main()
          showNotaMinMax(grupo.est, grupo.ta, "       TAREAS      ", 30, 15);
       }
 
+      // mostrando calificaciones superiores al promedio en parcial 1
+      else if (opc == 1)
+         showSupProm(grupo.est, grupo.p1, "Superior al Promedio Parcial 1");
+
+      // mostrando calificaciones superiores al promedio en parcial 2
+      else if (opc == 2)
+         showSupProm(grupo.est, grupo.p2, "Superior al Promedio Parcial 2");
+
+      // mostrando calificaciones superiores al promedio en examen final
+      else if (opc == 3)
+         showSupProm(grupo.est, grupo.ef, "Superior al Promedio Examen Final");
+
+      // mostrando calificaciones superiores al promedio tareas
+      else if (opc == 4)
+         showSupProm(grupo.est, grupo.ta, "Superior al Promedio Tareas");
+
       gotoxy(3, 29);
-      setColor(WHITE, YELLOW);
+      setColor(BLUE, YELLOW);
       printf("Presione [ESC] para regresar.");
       defaultColor();
       do {
@@ -239,7 +256,7 @@ int selectOpciones()
 
       do {
          key = getch();
-      } while (key != UP && key != DOWN && key != ENTER && key != ESC);
+      } while (key != UP && key != DOWN && key != ENTER);
 
       if (key == UP)
       {
@@ -256,7 +273,7 @@ int selectOpciones()
             index = 0;
       }
 
-   } while (key != ENTER && key != ESC);
+   } while (key != ENTER);
 
    return index;
 }
@@ -387,6 +404,59 @@ void notaMinMax(EVAL* eval, int* ind_min, int* ind_max)
    }
 
    return;
+}
+
+/*
+   Función    : showSupProm
+   Argumentos : EST* est: estructura con la información de los estudiantes
+                EVAL* eval: estructura con las evaluaciones
+                char* str: cadena para describir el tipo de evaluación
+   Objetivo   : mostrar estudiantes con calificaciones sobre el promedio en una evaluación
+   Retorno    : ---
+*/
+void showSupProm(EST* est, EVAL* eval, char* str)
+{
+   int index, pos_x = 3, pos_y = 3;
+   float prom = promedio(eval);
+
+   setColor(WHITE, LIGHTBLUE);
+   printf("%s", str);
+   defaultColor();
+
+   for (index = 0; index < MAXEST; index++)
+   {
+      if (eval[index].valor > prom)
+      {
+         gotoxy(pos_x, pos_y);
+         printf("ID: %s", est[index].id);
+         gotoxy(pos_x, ++pos_y);
+         printf("Nombre: %s", est[index].pnombre);
+         gotoxy(pos_x, ++pos_y);
+         printf("Apellido: %s", est[index].papellido);
+         gotoxy(pos_x, ++pos_y);
+         printf("Calificaci%cn: %s", 162, eval[index].valor);
+         pos_y += 2;
+      }
+   }
+
+   return;
+}
+
+/*
+   Función    : promedio
+   Argumentos : EVAL* eval: estructura con las evaluaciones
+   Objetivo   : calcular el promedio de las califiaciones en "eval"
+   Retorno    : (float) result: promedio de las calificaciones
+*/
+float promedio(EVAL* eval)
+{
+   int index;
+   float result = 0;
+
+   for (index = 0; index < MAXEST; index++)
+      result += eval[index].valor;
+
+   return result / MAXEST;
 }
 
 
