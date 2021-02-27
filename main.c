@@ -7,7 +7,7 @@
    Cosas por hacer:
    -//Promedio parcial
    -//Presentar nota máxima y mínima por evaluación y cuáles estudiantes las obtuvieron
-   -Opción de presentar los estudiantes con mayor nota sobre el promedio en P1, P2, F o T
+   -//Opción de presentar los estudiantes con mayor nota sobre el promedio en P1, P2, F o T
    -Tabla de posibilidades de pasar, sacar C, B o A
    -Tabla con evaluaciones finales
    -//Menú de opciones
@@ -27,7 +27,7 @@
 #define LENAPEL     15
 #define LENDESC     15
 #define MAXCLAVE    20
-#define MAXEST       2
+#define MAXEST       4
 #define MAXOPC       7
 #define CHAROPC     40
 
@@ -39,6 +39,11 @@
 #define MIN      0
 #define MAX    100
 #define PP    0.75
+
+#define PASAR_D   59.5
+#define PASAR_C   69.5
+#define PASAR_B   79.5
+#define PASAR_A   89.5
 
 /* Estructuras */
 
@@ -71,6 +76,8 @@ void showNotaMinMax(EST*, EVAL*, char*, int, int);
 void notaMinMax(EVAL*, int*, int*);
 void showSupProm(EST*, EVAL*, char*);
 float promedio(EVAL*);
+void showNotaNec(GRUPO*);
+float getNotaNec(GRUPO*, int, float, float*);
 
 int main()
 {
@@ -79,6 +86,54 @@ int main()
    char key;
 
    //grupo = getGrupo();
+
+   strcpy(grupo.est[0].id, "1020321");
+   strcpy(grupo.est[0].pnombre, "Julian");
+   strcpy(grupo.est[0].papellido, "Diaz");
+   grupo.p1[0].valor = 95;
+   grupo.p1[0].porc = 0.20;
+   grupo.p2[0].valor = 80;
+   grupo.p2[0].porc = 0.30;
+   grupo.ef[0].valor = 60;
+   grupo.ef[0].porc = 0.25;
+   grupo.ta[0].valor = 80;
+   grupo.ta[0].porc = 0.25;
+
+   strcpy(grupo.est[1].id, "1020456");
+   strcpy(grupo.est[1].pnombre, "Alfredo");
+   strcpy(grupo.est[1].papellido, "Sanz");
+   grupo.p1[1].valor = 80;
+   grupo.p1[1].porc = 0.20;
+   grupo.p2[1].valor = 75;
+   grupo.p2[1].porc = 0.30;
+   grupo.ef[1].valor = 50;
+   grupo.ef[1].porc = 0.25;
+   grupo.ta[1].valor = 67;
+   grupo.ta[1].porc = 0.25;
+
+   strcpy(grupo.est[2].id, "1020567");
+   strcpy(grupo.est[2].pnombre, "Julio");
+   strcpy(grupo.est[2].papellido, "Perez");
+   grupo.p1[2].valor = 80;
+   grupo.p1[2].porc = 0.20;
+   grupo.p2[2].valor = 85;
+   grupo.p2[2].porc = 0.30;
+   grupo.ef[2].valor = 75;
+   grupo.ef[2].porc = 0.25;
+   grupo.ta[2].valor = 70;
+   grupo.ta[2].porc = 0.25;
+
+   strcpy(grupo.est[3].id, "1034203");
+   strcpy(grupo.est[3].pnombre, "Marco");
+   strcpy(grupo.est[3].papellido, "Baez");
+   grupo.p1[3].valor = 85;
+   grupo.p1[3].porc = 0.20;
+   grupo.p2[3].valor = 75;
+   grupo.p2[3].porc = 0.30;
+   grupo.ef[3].valor = 90;
+   grupo.ef[3].porc = 0.25;
+   grupo.ta[3].valor = 75;
+   grupo.ta[3].porc = 0.25;
 
    while (TRUE)
    {
@@ -110,6 +165,9 @@ int main()
       else if (opc == 4)
          showSupProm(grupo.est, grupo.ta, "Superior al Promedio Tareas");
 
+      else if (opc == 5)
+         showNotaNec(&grupo);
+
       gotoxy(3, 29);
       setColor(BLUE, YELLOW);
       printf("Presione [ESC] para regresar.");
@@ -118,10 +176,6 @@ int main()
          key = getch();
       } while (key != ESC);
    }
-
-   // calculando el promedio parcial
-   //for (est = 0; est < MAXEST; est++)
-      //grupo.pp[est].valor = (calcCalif(&grupo, est) - grupo.ef[est].valor*grupo.ef[est].porc) / PP;
 
    return 0;
 }
@@ -377,9 +431,10 @@ void notaMinMax(EVAL* eval, int* ind_min, int* ind_max)
    int index;
    float n_min, n_max;
 
-   // buscando nota mínima
    *ind_min = 0;
+   *ind_max = 0;
    n_min = eval[0].valor;
+   n_max = eval[0].valor;
 
    for (index = 0; index < MAXEST; index++)
    {
@@ -388,14 +443,7 @@ void notaMinMax(EVAL* eval, int* ind_min, int* ind_max)
          *ind_min = index;
          n_min = eval[index].valor;
       }
-   }
 
-   // buscando nota máxima
-   *ind_max = 0;
-   n_max = eval[0].valor;
-
-   for (index = 0; index < MAXEST; index++)
-   {
       if (eval[index].valor > n_max)
       {
          *ind_max = index;
@@ -434,7 +482,7 @@ void showSupProm(EST* est, EVAL* eval, char* str)
          gotoxy(pos_x, ++pos_y);
          printf("Apellido: %s", est[index].papellido);
          gotoxy(pos_x, ++pos_y);
-         printf("Calificaci%cn: %s", 162, eval[index].valor);
+         printf("Calificaci%cn: %.2f", 162, eval[index].valor);
          pos_y += 2;
       }
    }
@@ -459,6 +507,89 @@ float promedio(EVAL* eval)
    return result / MAXEST;
 }
 
+/*
+   Función    : showNotaNec
+   Argumentos : GRUPO* gr: estructura con la información del grupo
+   Objetivo   : mostrar la calificación necesaria en el examen final para pasar con cierta letra
+   Retorno    : ---
+*/
+void showNotaNec(GRUPO* gr)
+{
+   int index, pos_x = 3, pos_y = 3;
+   float nota;
+
+   gotoxy(pos_x, pos_y);
+   setColor(BLUE, YELLOW);
+   printf("   ID     Estudiante           D        C        B        A   ");
+   defaultColor();
+
+   for (index = 0; index < MAXEST; index++)
+   {
+      gotoxy(pos_x, pos_y+index+1);
+      printf("%s", gr->est[index].id);
+      gotoxy(pos_x+10, pos_y+index+1);
+      printf("%s %s", gr->est[index].pnombre, gr->est[index].papellido);
+
+      gotoxy(pos_x+29, pos_y+index+1);
+      getNotaNec(gr, index, PASAR_D, &nota);
+
+      if (nota <= MIN)
+         printf(" N/A");
+      else if (nota > MAX)
+         printf(" ---");
+      else
+         printf("%.2f", nota);
+
+      gotoxy(pos_x+38, pos_y+index+1);
+      getNotaNec(gr, index, PASAR_C, &nota);
+
+      if (nota <= MIN)
+         printf(" N/A");
+      else if (nota > MAX)
+         printf(" ---");
+      else
+         printf("%.2f", nota);
+
+      gotoxy(pos_x+47, pos_y+index+1);
+      getNotaNec(gr, index, PASAR_B, &nota);
+
+      if (nota <= MIN)
+         printf(" N/A");
+      else if (nota > MAX)
+         printf(" ---");
+      else
+         printf("%.2f", nota);
+
+      gotoxy(pos_x+56, pos_y+index+1);
+      getNotaNec(gr, index, PASAR_A, &nota);
+
+      if (nota <= MIN)
+         printf(" N/A");
+      else if (nota > MAX)
+         printf(" ---");
+      else
+         printf("%.2f", nota);
+   }
+
+   return;
+}
+
+/*
+   Función    : getNotaNec
+   Argumentos : GRUPO* gr: estructura con la información del grupo
+                int est: índice del estudiante
+                float obj: objetivo de nota
+                float* nota: referencia para almacenar la nota
+   Objetivo   : calcular la nota necesaria para cierta letra
+   Retorno    : (float) nota: nota necesaria
+*/
+float getNotaNec(GRUPO* gr, int est, float obj, float* nota)
+{
+   *nota = (obj - gr->p1[est].valor*gr->p1[est].porc - gr->p2[est].valor*gr->p2[est].porc -
+           gr->ta[est].valor*gr->ta[est].porc) / gr->ef[est].porc;
+
+   return;
+}
 
 
 
