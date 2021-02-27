@@ -10,7 +10,7 @@
    -Opción de presentar los estudiantes con mayor nota sobre el promedio en P1, P2, F o T
    -Tabla de posibilidades de pasar, sacar C, B o A
    -Tabla con evaluaciones finales
-   -Menú de opciones
+   -//Menú de opciones
 */
 
 #include <stdio.h>
@@ -22,12 +22,12 @@
 #define TRUE    1
 #define FALSE   0
 
-#define MAXID        8
+#define MAXID       10
 #define LENNOMBRE   15
 #define LENAPEL     15
 #define LENDESC     15
 #define MAXCLAVE    20
-#define MAXEST       6
+#define MAXEST       2
 #define MAXOPC       7
 #define CHAROPC     40
 
@@ -39,6 +39,8 @@
 #define MIN      0
 #define MAX    100
 #define PP    0.75
+
+#define EVAL_MAX_MIN   0
 
 /* Estructuras */
 
@@ -63,19 +65,42 @@ typedef struct{
 GRUPO getGrupo(void);
 void setColor(int, int);
 void defaultColor();
-void selectOpciones(GRUPO*);
-void showOpciones(char [][CHAROPC], int);
 void getCalifEval(EVAL*, char*, char*, char*);
+int selectOpciones();
+void showOpciones(char [][CHAROPC], int);
 float calcCalif(GRUPO*, int);
+void showNotaMinMax(EST*, EVAL*, char*, int, int);
 void notaMinMax(EVAL*, int*, int*);
 
 int main()
 {
    GRUPO grupo;
-   int est;
+   int opc;
+   char key;
 
-   //grupo = getGrupo();
-   selectOpciones(&grupo);
+   grupo = getGrupo();
+
+   while (TRUE)
+   {
+      opc = selectOpciones();
+      system("cls");
+
+      if (opc == EVAL_MAX_MIN)
+      {
+         showNotaMinMax(grupo.est, grupo.p1, "     PARCIAL 1     ", 3, 1);
+         showNotaMinMax(grupo.est, grupo.p2, "     PARCIAL 2     ", 30, 1);
+         showNotaMinMax(grupo.est, grupo.ef, "    EXAMEN FINAL   ", 3, 15);
+         showNotaMinMax(grupo.est, grupo.ta, "       TAREAS      ", 30, 15);
+      }
+
+      gotoxy(3, 29);
+      setColor(WHITE, YELLOW);
+      printf("Presione [ESC] para regresar.");
+      defaultColor();
+      do {
+         key = getch();
+      } while (key != ESC);
+   }
 
    // calculando el promedio parcial
    //for (est = 0; est < MAXEST; est++)
@@ -154,12 +179,40 @@ void defaultColor()
 }
 
 /*
-   Función    : selectOpciones
-   Argumentos : GRUPO* gr: estructura con la información del grupo
-   Objetivo   : presentar menú de opciones para elegir
+   Función    : getCalifEval
+   Argumentos : EVAL* eval: estructura con las evaluaciones
+                char* str1: mensaje del tipo de evaluación
+                char* str2: mensaje del porcentaje
+                char* str3: mensaje de descripción
+   Objetivo   : capturar los diferentes parámetros de las evaluaciones
    Retorno    : ---
 */
-void selectOpciones(GRUPO* gr)
+void getCalifEval(EVAL* eval, char* str1, char* str2, char* str3)
+{
+   do {
+      printf("%s: ", str1);
+      scanf("%f", &eval->valor);
+   } while (eval->valor < MIN || eval->valor > MAX);
+
+   do {
+      printf("%s: ", str2);
+      scanf("%f", &eval->porc);
+   } while (eval->porc < 0 || eval->porc > 1);
+
+   printf("%s: ", str3);
+   fflush(stdin);
+   gets(eval->desc);
+
+   return;
+}
+
+/*
+   Función    : selectOpciones
+   Argumentos : ---
+   Objetivo   : presentar menú de opciones para elegir
+   Retorno    : (int) index: opción seleccionada
+*/
+int selectOpciones()
 {
    char key, index = 0;
 
@@ -172,6 +225,8 @@ void selectOpciones(GRUPO* gr)
                                "Calificaciones finales             "};
 
    _setcursortype(FALSE);
+
+   system("cls");
 
    gotoxy(3,3);
    setColor(WHITE, LIGHTBLUE);
@@ -202,6 +257,8 @@ void selectOpciones(GRUPO* gr)
       }
 
    } while (key != ENTER && key != ESC);
+
+   return index;
 }
 
 /*
@@ -228,34 +285,6 @@ void showOpciones(char opc[][CHAROPC], int select)
 }
 
 /*
-   Función    : getCalifEval
-   Argumentos : EVAL* eval: estructura con las evaluaciones
-                char* str1: mensaje del tipo de evaluación
-                char* str2: mensaje del porcentaje
-                char* str3: mensaje de descripción
-   Objetivo   : capturar los diferentes parámetros de las evaluaciones
-   Retorno    : ---
-*/
-void getCalifEval(EVAL* eval, char* str1, char* str2, char* str3)
-{
-   do {
-      printf("%s: ", str1);
-      scanf("%f", &eval->valor);
-   } while (eval->valor < MIN || eval->valor > MAX);
-
-   do {
-      printf("%s: ", str2);
-      scanf("%f", &eval->porc);
-   } while (eval->porc < 0 || eval->porc > 1);
-
-   printf("%s: ", str3);
-   fflush(stdin);
-   gets(eval->desc);
-
-   return;
-}
-
-/*
    Función    : calcCalif
    Argumentos : GRUPO* gr: estructura con la información del grupo
                 int est: índice del estudiante
@@ -268,6 +297,54 @@ float calcCalif(GRUPO* gr, int est)
    result = (gr->p1[est].valor*gr->p1[est].porc) + (gr->p2[est].valor*gr->p2[est].porc) +
             (gr->ef[est].valor*gr->ef[est].porc) + (gr->ta[est].valor*gr->ta[est].porc);
    return result;
+}
+
+/*
+   Función    : showNotaMinMax
+   Argumentos : EST* est: estructura con la información de los estudiantes
+                EVAL* eval: estructura que contiene las calificaiones de "est"
+                char* str: cadena para describir el tipo de evaluación
+                int pos_x: indica la posición en x (columnas)
+                int pos_y: indica la posición en y (filas)
+   Objetivo   : mostrar la nota mínima y máxima de una evaluación
+   Retorno    : ---
+*/
+void showNotaMinMax(EST* est, EVAL* eval, char* str, int pos_x, int pos_y)
+{
+   int min, max;
+
+   notaMinMax(eval, &min, &max);
+
+   gotoxy(pos_x, pos_y);
+   setColor(WHITE, LIGHTBLUE);
+   printf("%s", str);
+   defaultColor();
+
+   // mostrando nota máxima
+   gotoxy(pos_x, pos_y+2);
+   printf("Nota m%cxima:", 160);
+   gotoxy(pos_x, pos_y+3);
+   printf("ID: %s", est[max].id);
+   gotoxy(pos_x, pos_y+4);
+   printf("Nombre: %s", est[max].pnombre);
+   gotoxy(pos_x, pos_y+5);
+   printf("Apellido: %s", est[max].papellido);
+   gotoxy(pos_x, pos_y+6);
+   printf("Calificaci%cn: %.2f", 162, eval[max].valor);
+
+   // mostrando nota mínima
+   gotoxy(pos_x, pos_y+8);
+   printf("Nota m%cnima:", 161);
+   gotoxy(pos_x, pos_y+9);
+   printf("ID: %s", est[min].id);
+   gotoxy(pos_x, pos_y+10);
+   printf("Nombre: %s", est[min].pnombre);
+   gotoxy(pos_x, pos_y+11);
+   printf("Apellido: %s", est[min].papellido);
+   gotoxy(pos_x, pos_y+12);
+   printf("Calificaci%cn: %.2f", 162, eval[min].valor);
+
+   return;
 }
 
 /*
