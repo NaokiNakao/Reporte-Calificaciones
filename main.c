@@ -2,15 +2,7 @@
    Programa para almacenar reporte de notas.
 
    Autor: Naoki Nakao
-   Fecha:
-
-   Cosas por hacer:
-   -//Promedio parcial
-   -//Presentar nota máxima y mínima por evaluación y cuáles estudiantes las obtuvieron
-   -//Opción de presentar los estudiantes con mayor nota sobre el promedio en P1, P2, F o T
-   -Tabla de posibilidades de pasar, sacar C, B o A
-   -Tabla con evaluaciones finales
-   -//Menú de opciones
+   Fecha: 27/02/2021
 */
 
 #include <stdio.h>
@@ -69,15 +61,16 @@ GRUPO getGrupo(void);
 void setColor(int, int);
 void defaultColor();
 void getCalifEval(EVAL*, char*, char*, char*);
+float calcCalif(GRUPO*, int);
 int selectOpciones();
 void showOpciones(char [][CHAROPC], int);
-float calcCalif(GRUPO*, int);
 void showNotaMinMax(EST*, EVAL*, char*, int, int);
 void notaMinMax(EVAL*, int*, int*);
 void showSupProm(EST*, EVAL*, char*);
 float promedio(EVAL*);
 void showNotaNec(GRUPO*);
-float getNotaNec(GRUPO*, int, float, float*);
+void getNotaNec(GRUPO*, int, float, int, int);
+void showEvalFinales(GRUPO*);
 
 int main()
 {
@@ -85,9 +78,12 @@ int main()
    int opc;
    char key;
 
-   //grupo = getGrupo();
+   // Comentar la línea 83 y quitar comentarios desde la línea
+   // 86 hasta 132 para obviar la captura de datos.
 
-   strcpy(grupo.est[0].id, "1020321");
+   grupo = getGrupo();
+
+   /*strcpy(grupo.est[0].id, "1020321");
    strcpy(grupo.est[0].pnombre, "Julian");
    strcpy(grupo.est[0].papellido, "Diaz");
    grupo.p1[0].valor = 95;
@@ -133,7 +129,11 @@ int main()
    grupo.ef[3].valor = 90;
    grupo.ef[3].porc = 0.25;
    grupo.ta[3].valor = 75;
-   grupo.ta[3].porc = 0.25;
+   grupo.ta[3].porc = 0.25;*/
+
+   // calculando promedio parcial
+   for (int index = 0; index < MAXEST; index++)
+      grupo.pp[index].valor = ((calcCalif(&grupo,index)-grupo.ef[index].valor*grupo.ef[index].porc)/PP);
 
    while (TRUE)
    {
@@ -165,8 +165,13 @@ int main()
       else if (opc == 4)
          showSupProm(grupo.est, grupo.ta, "Superior al Promedio Tareas");
 
+      // mostrando calificaciones necesarias para pasar con cierta nota
       else if (opc == 5)
          showNotaNec(&grupo);
+
+      // mostrando evaluaciones finales
+      else if (opc == 6)
+         showEvalFinales(&grupo);
 
       gotoxy(3, 29);
       setColor(BLUE, YELLOW);
@@ -278,6 +283,21 @@ void getCalifEval(EVAL* eval, char* str1, char* str2, char* str3)
 }
 
 /*
+   Función    : calcCalif
+   Argumentos : GRUPO* gr: estructura con la información del grupo
+                int est: índice del estudiante
+   Objetivo   : calcular las calificaciones de los estudiantes
+   Retorno    : (float) result: calificación total del estudiante
+*/
+float calcCalif(GRUPO* gr, int est)
+{
+   float result;
+   result = (gr->p1[est].valor*gr->p1[est].porc) + (gr->p2[est].valor*gr->p2[est].porc) +
+            (gr->ef[est].valor*gr->ef[est].porc) + (gr->ta[est].valor*gr->ta[est].porc);
+   return result;
+}
+
+/*
    Función    : selectOpciones
    Argumentos : ---
    Objetivo   : presentar menú de opciones para elegir
@@ -353,21 +373,6 @@ void showOpciones(char opc[][CHAROPC], int select)
    }
 
    return;
-}
-
-/*
-   Función    : calcCalif
-   Argumentos : GRUPO* gr: estructura con la información del grupo
-                int est: índice del estudiante
-   Objetivo   : calcular las calificaciones de los estudiantes
-   Retorno    : (float) result: calificación total del estudiante
-*/
-float calcCalif(GRUPO* gr, int est)
-{
-   float result;
-   result = (gr->p1[est].valor*gr->p1[est].porc) + (gr->p2[est].valor*gr->p2[est].porc) +
-            (gr->ef[est].valor*gr->ef[est].porc) + (gr->ta[est].valor*gr->ta[est].porc);
-   return result;
 }
 
 /*
@@ -516,7 +521,6 @@ float promedio(EVAL* eval)
 void showNotaNec(GRUPO* gr)
 {
    int index, pos_x = 3, pos_y = 3;
-   float nota;
 
    gotoxy(pos_x, pos_y);
    setColor(BLUE, YELLOW);
@@ -530,45 +534,10 @@ void showNotaNec(GRUPO* gr)
       gotoxy(pos_x+10, pos_y+index+1);
       printf("%s %s", gr->est[index].pnombre, gr->est[index].papellido);
 
-      gotoxy(pos_x+29, pos_y+index+1);
-      getNotaNec(gr, index, PASAR_D, &nota);
-
-      if (nota <= MIN)
-         printf(" N/A");
-      else if (nota > MAX)
-         printf(" ---");
-      else
-         printf("%.2f", nota);
-
-      gotoxy(pos_x+38, pos_y+index+1);
-      getNotaNec(gr, index, PASAR_C, &nota);
-
-      if (nota <= MIN)
-         printf(" N/A");
-      else if (nota > MAX)
-         printf(" ---");
-      else
-         printf("%.2f", nota);
-
-      gotoxy(pos_x+47, pos_y+index+1);
-      getNotaNec(gr, index, PASAR_B, &nota);
-
-      if (nota <= MIN)
-         printf(" N/A");
-      else if (nota > MAX)
-         printf(" ---");
-      else
-         printf("%.2f", nota);
-
-      gotoxy(pos_x+56, pos_y+index+1);
-      getNotaNec(gr, index, PASAR_A, &nota);
-
-      if (nota <= MIN)
-         printf(" N/A");
-      else if (nota > MAX)
-         printf(" ---");
-      else
-         printf("%.2f", nota);
+      getNotaNec(gr, index, PASAR_D, pos_x+29, pos_y+index+1);
+      getNotaNec(gr, index, PASAR_C, pos_x+38, pos_y+index+1);
+      getNotaNec(gr, index, PASAR_B, pos_x+47, pos_y+index+1);
+      getNotaNec(gr, index, PASAR_A, pos_x+56, pos_y+index+1);
    }
 
    return;
@@ -579,14 +548,83 @@ void showNotaNec(GRUPO* gr)
    Argumentos : GRUPO* gr: estructura con la información del grupo
                 int est: índice del estudiante
                 float obj: objetivo de nota
-                float* nota: referencia para almacenar la nota
-   Objetivo   : calcular la nota necesaria para cierta letra
-   Retorno    : (float) nota: nota necesaria
+                int pos_x: posición en x (columnas)
+                int pos_y: posición en y (filas)
+   Objetivo   : calcular y mostar la calificación en una evaluación específica
+   Retorno    : ---
 */
-float getNotaNec(GRUPO* gr, int est, float obj, float* nota)
+void getNotaNec(GRUPO* gr, int est, float obj, int pos_x, int pos_y)
 {
-   *nota = (obj - gr->p1[est].valor*gr->p1[est].porc - gr->p2[est].valor*gr->p2[est].porc -
+   float nota;
+
+   nota = (obj - gr->p1[est].valor*gr->p1[est].porc - gr->p2[est].valor*gr->p2[est].porc -
            gr->ta[est].valor*gr->ta[est].porc) / gr->ef[est].porc;
+
+   gotoxy(pos_x, pos_y);
+
+   if (nota <= MIN)
+      printf(" N/A");
+   else if (nota > MAX)
+      printf(" ---");
+   else
+      printf("%.2f", nota);
+
+   return;
+}
+
+/*
+   Función    : showEvalFinales
+   Argumentos : GRUPO* gr: estructura con la información del grupo
+   Objetivo   : mostrar las evaluaciones finales
+   Retorno    : ---
+*/
+void showEvalFinales(GRUPO* gr)
+{
+   int index, pos_x = 3, pos_y = 3;
+   float calif;
+
+   gotoxy(pos_x, pos_y);
+   setColor(WHITE, LIGHTBLUE);
+   printf("                                  EVALUACIONES                              ");
+   setColor(BLUE, YELLOW);
+   gotoxy(pos_x, pos_y+1);
+   printf("   ID     Estudiante       P1     P2     EF     TA    Prom.  Calificaci%cn   ", 162);
+   gotoxy(pos_x, pos_y+2);
+   printf("                          (20%c)  (30%c)  (25%c)  (25%c)  (75%c)     Final       ", 37, 37, 37, 37, 37);
+   defaultColor();
+
+   for (index = 0; index < MAXEST; index++)
+   {
+      gotoxy(pos_x, pos_y+index+3);
+      printf("%s", gr->est[index].id);
+      gotoxy(pos_x+10, pos_y+index+3);
+      printf("%s %s", gr->est[index].pnombre, gr->est[index].papellido);
+      gotoxy(pos_x+26, pos_y+index+3);
+      printf("%.2f", gr->p1[index].valor);
+      gotoxy(pos_x+33, pos_y+index+3);
+      printf("%.2f", gr->p2[index].valor);
+      gotoxy(pos_x+40, pos_y+index+3);
+      printf("%.2f", gr->ef[index].valor);
+      gotoxy(pos_x+47, pos_y+index+3);
+      printf("%.2f", gr->ta[index].valor);
+      gotoxy(pos_x+54, pos_y+index+3);
+      printf("%.2f", gr->pp[index].valor);
+
+      calif = calcCalif(gr, index);
+      gotoxy(pos_x+66, pos_y+index+3);
+
+      // verificando la letra
+      if (calif < 60)
+         printf("F");
+      else if (calif >= 60 && calif < 70)
+         printf("D");
+      else if (calif >= 70 && calif < 80)
+         printf("C");
+      else if (calif >= 80 && calif < 90)
+         printf("B");
+      else if (calif >= 90)
+         printf("A");
+   }
 
    return;
 }
